@@ -25,8 +25,16 @@ const settings = {
     numberMessage: 'Campo possui número inválido'
 };
 
-function required(options = {}) {
+function setDefaultSettings(options = {}) {
     if (typeof options === 'string') { options = { message: options } }
+    if (typeof options.allowEmptyValue !== 'boolean') { options.allowEmptyValue = true }
+
+    return options;
+}
+
+function required(options = {}) {
+    options = setDefaultSettings(options);
+
     if (!options.message) { options.message = settings.requiredMessage; }
 
     const requiredValidator = (value) => {
@@ -44,7 +52,8 @@ function required(options = {}) {
 }
 
 function array(options = {}) {
-    if (typeof options === 'string') { options = { message: options } }
+    options = setDefaultSettings(options);
+
     if (!options.message) { options.message = settings.arrayMessage; }
 
     const arrayValidator = (value) => {
@@ -55,11 +64,13 @@ function array(options = {}) {
 }
 
 function minlength(size, options = {}) {
-    if (typeof options === 'string') { options = { message: options } }
+    options = setDefaultSettings(options);
+
     if (!options.message) { options.message = settings.minlengthMessage; }
 
     const minlengthValidator = (value) => {
-        let validation = !value || (typeof (value) === 'string' && value.length >= size);
+        let validation = (options.allowEmptyValue && !value)
+            || (typeof (value) === 'string' && value.length >= size);
 
         return createValidationResponse(validation, options.message);
     };
@@ -68,11 +79,13 @@ function minlength(size, options = {}) {
 }
 
 function maxlength(size, options = {}) {
-    if (typeof options === 'string') { options = { message: options } }
+    options = setDefaultSettings(options);
+
     if (!options.message) { options.message = settings.maxlengthMessage; }
 
     const maxlengthValidator = (value) => {
-        let validation = !value || (typeof (value) === 'string' && value.length <= size);
+        let validation = (options.allowEmptyValue && !value)
+            || (typeof (value) === 'string' && value.length <= size);
 
         return createValidationResponse(validation, options.message);
     };
@@ -81,24 +94,28 @@ function maxlength(size, options = {}) {
 }
 
 function range(min, max, options = {}) {
-    if (typeof options === 'string') { options = { message: options } }
+    options = setDefaultSettings(options);
+
     if (!options.message) { options.message = settings.rangeMessage; }
 
-    const maxlengthValidator = (value) => {
-        let validation = !value || (typeof (value) === 'string' && value.length > min && value.length <= max);
+    const rangeValidator = (value) => {
+        let validation = (options.allowEmptyValue && !value)
+            || (typeof (value) === 'string' && value.length > min && value.length <= max);
 
         return createValidationResponse(validation, options.message);
     };
 
-    return maxlengthValidator;
+    return rangeValidator;
 }
 
 function guid(options = {}) {
-    if (typeof options === 'string') { options = { message: options } }
+    options = setDefaultSettings(options);
+
     if (!options.message) { options.message = settings.guidMessage; }
 
     const guidValidator = (value) => {
-        let validation = !value || new RegExp(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i).test(value);
+        let validation = (options.allowEmptyValue && !value)
+            || new RegExp(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i).test(value);
 
         return createValidationResponse(validation, options.message);
     };
@@ -107,11 +124,13 @@ function guid(options = {}) {
 }
 
 function cpfFn(options = {}) {
-    if (typeof options === 'string') { options = { message: options } }
+    options = setDefaultSettings(options);
+
     if (!options.message) { options.message = settings.cpfMessage; }
 
     const cpfValidator = (value) => {
-        let validation = !value || cpf.isValid(value);
+        let validation = (options.allowEmptyValue && !value)
+            || cpf.isValid(value);
 
         return createValidationResponse(validation, options.message);
     };
@@ -120,11 +139,13 @@ function cpfFn(options = {}) {
 }
 
 function cnpjFn(options = {}) {
-    if (typeof options === 'string') { options = { message: options } }
+    options = setDefaultSettings(options);
+
     if (!options.message) { options.message = settings.cnpjMessage; }
 
     const cnpjValidator = (value) => {
-        let validation = !value || cnpj.isValid(value);
+        let validation = (options.allowEmptyValue && !value)
+            || cnpj.isValid(value);
 
         return createValidationResponse(validation, options.message);
     };
@@ -133,11 +154,13 @@ function cnpjFn(options = {}) {
 }
 
 function cpfCnpj(options = {}) {
-    if (typeof options === 'string') { options = { message: options } }
+    options = setDefaultSettings(options);
+
     if (!options.message) { options.message = settings.cpfCnpjMessage; }
 
     const cnpjValidator = (value) => {
-        let validation = !value || cpf.isValid(value) || cnpj.isValid(value);
+        let validation = (options.allowEmptyValue && !value)
+            || cpf.isValid(value) || cnpj.isValid(value);
 
         return createValidationResponse(validation, options.message);
     };
@@ -146,11 +169,13 @@ function cpfCnpj(options = {}) {
 }
 
 function number(options = {}) {
-    if (typeof options === 'string') { options = { message: options } }
-    if (!options.message) { options.message = settings. numberMessage; }
+    options = setDefaultSettings(options);
+
+    if (!options.message) { options.message = settings.numberMessage; }
 
     const numberValidator = (value) => {
-        let validation = !value || new RegExp(/^[0-9]*$/).test(value);
+        let validation = (options.allowEmptyValue && !value)
+            || new RegExp(/^[0-9]*$/).test(value);
 
         return createValidationResponse(validation, options.message);
     };
@@ -159,10 +184,13 @@ function number(options = {}) {
 }
 
 function createValidationResponse(valid, message) {
-    return ({
-        isValid: valid,
-        message: message
-    });
+    let response = { isValid: valid };
+
+    if (!valid) {
+        response.message = message;
+    }
+
+    return response;
 }
 
 function check(validations) {
@@ -171,7 +199,7 @@ function check(validations) {
     for (const field in validations) {
         let [value, ...rules] = validations[field];
 
-        response.validations[field] = [];
+        response.validations[field] = {};
 
         rules.forEach(rule => {
             if (rule.name.indexOf('Validator') < 0) { rule = rule() };
@@ -185,6 +213,7 @@ function check(validations) {
         });
     }
 
+    console.log(JSON.stringify(response));
     return response;
 };
 
