@@ -6,7 +6,7 @@ var validator = require('../index');
 describe('#required', function () {
 
     describe('#success', function () {
-        it('1) Should validate valid string', function () {
+        it('1) Should allow valid string', function () {
             const result = validator.check({
                 name: ['Fábio', validator.required]
             });
@@ -14,7 +14,7 @@ describe('#required', function () {
             expect(result.isValid).to.equal(true);
         });
 
-        it('2) Should validate not empty array', function () {
+        it('2) Should allow non empty array', function () {
             const result = validator.check({
                 name: [['item 1'], validator.required]
             });
@@ -22,7 +22,7 @@ describe('#required', function () {
             expect(result.isValid).to.equal(true);
         });
 
-        it('3) Should validate true boolean value', function () {
+        it('3) Should allow true boolean value', function () {
             const result = validator.check({
                 name: [true, validator.required]
             });
@@ -30,7 +30,7 @@ describe('#required', function () {
             expect(result.isValid).to.equal(true);
         });
 
-        it('4) Should validate false boolean value', function () {
+        it('4) Should allow false boolean value', function () {
             const result = validator.check({
                 name: [false, validator.required]
             });
@@ -38,7 +38,7 @@ describe('#required', function () {
             expect(result.isValid).to.equal(true);
         });
 
-        it('5) Should ignore allowEmptyValue param', function () {
+        it('5) Should ignore allowEmptyValue param for boolean value', function () {
             const result = validator.check({
                 name: [false, validator.required({ allowEmptyValue: true })]
             });
@@ -48,7 +48,7 @@ describe('#required', function () {
     });
 
     describe('#fail', function () {
-        it('1) Should validate empty value', function () {
+        it('1) Should warn empty value', function () {
             const result = validator.check({
                 name: ['', validator.required]
             });
@@ -56,7 +56,7 @@ describe('#required', function () {
             expect(result.isValid).to.equal(false);
         });
 
-        it('2) Should validate null value', function () {
+        it('2) Should warn null value', function () {
             const result = validator.check({
                 name: ['', validator.required]
             });
@@ -64,7 +64,7 @@ describe('#required', function () {
             expect(result.isValid).to.equal(false);
         });
 
-        it('3) Should validate undefined value', function () {
+        it('3) Should warn undefined value', function () {
             const result = validator.check({
                 name: ['', validator.required]
             });
@@ -72,7 +72,7 @@ describe('#required', function () {
             expect(result.isValid).to.equal(false);
         });
 
-        it('4) Should validate empty array', function () {
+        it('4) Should warn empty array', function () {
             const result = validator.check({
                 name: [[], validator.required]
             });
@@ -80,7 +80,7 @@ describe('#required', function () {
             expect(result.isValid).to.equal(false);
         });
 
-        it('5) Should validate error message', function () {
+        it('5) Should display custom error message when invalid', function () {
             let message = 'My field name is required';
 
             const result = validator.check({
@@ -90,7 +90,7 @@ describe('#required', function () {
             expect(result.validations['name']['required'].message).to.equal(message);
         });
 
-        it('6) Should validate error message: short form', function () {
+        it('6) Should display error message using short form', function () {
             let message = 'My field name is required';
 
             const result = validator.check({
@@ -106,7 +106,7 @@ describe('#required', function () {
 describe('#array', function () {
 
     describe('#success', function () {
-        it('1) Should validate valid array', function () {
+        it('1) Should allow valid array', function () {
             const result = validator.check({
                 name: [[], validator.array]
             });
@@ -114,12 +114,20 @@ describe('#array', function () {
             expect(result.isValid).to.equal(true);
         });
 
-        it('2) Should ignore allowEmptyValue param', function () {
+        it('2) Should consider local allowEmptyValue param', function () {
             const result = validator.check({
                 name: [null, validator.array({ allowEmptyValue: true })]
             });
 
-            expect(result.isValid).to.equal(false);
+            expect(result.isValid).to.equal(true);
+        });
+
+        it('3) Should consider global allowEmptyValue param', function () {
+            const result = validator.check({
+                name: [null, validator.array, { allowEmptyValue: true }]
+            });
+
+            expect(result.isValid).to.equal(true);
         });
     });
 
@@ -649,10 +657,11 @@ describe('#multiple validations', function () {
     describe('#success', function () {
         it('1) Should validate all', function () {
             const result = validator.check({
-                name: ['fabio akira', validator.required, validator.minlength(5), validator.maxlength(20)]
+                name: ['fabio akira', validator.required({ errorCode: 1000 }), validator.minlength(5, { errorCode: 1000, warning: true }), validator.maxlength(6, { errorCode: 1051 })],
+                group: ['address', validator.required, validator.minlength(5), validator.maxlength(20)]
             });
-
-            expect(result.isValid).to.equal(true);
+            console.log(JSON.stringify(result));
+            expect(result.isValid).to.equal(false);
         });
 
     });

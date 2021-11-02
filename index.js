@@ -22,7 +22,8 @@ const settings = {
     cpfMessage: 'Campo possui CPF inválido',
     cnpjMessage: 'Campo possui CNPJ inválido',
     cpfCnpjMessage: 'Campo possui CPF/CNPJ inválido',
-    numberMessage: 'Campo possui número inválido'
+    numberMessage: 'Campo possui número inválido',
+    emailMessage: 'Campo possui e-mail inválido'
 };
 
 function setDefaultSettings(options = {}) {
@@ -32,169 +33,197 @@ function setDefaultSettings(options = {}) {
     return options;
 }
 
-function required(options = {}) {
-    options = setDefaultSettings(options);
+function isEmpty(value) {
+    return (value === '' || isNull(value));
+}
 
-    if (!options.message) { options.message = settings.requiredMessage; }
+function isNull(value) {
+    return (value === undefined || value === null);
+}
 
-    const requiredValidator = (value) => {
-        let validation =
-            value !== '' &&
-            value !== undefined &&
-            value !== null;
+function required(ruleOptions = {}) {
+    ruleOptions = setDefaultSettings(ruleOptions);
 
-        if (Array.isArray(value) && value.length === 0) { validation = false; }
+    ruleOptions.message = ruleOptions.message || settings.requiredMessage;
 
-        return createValidationResponse(validation, options);
+    const requiredValidator = (globalOptions = {}) => {
+        return (value) => {
+            let isValid = !isEmpty(value);
+
+            if (Array.isArray(value) && value.length === 0) { isValid = false; }
+
+            return createValidationResponse(isValid, ruleOptions);
+        };
     };
 
     return requiredValidator;
 }
 
-function array(options = {}) {
-    options = setDefaultSettings(options);
+function array(ruleOptions = {}) {
+    ruleOptions = setDefaultSettings(ruleOptions);
 
-    if (!options.message) { options.message = settings.arrayMessage; }
+    ruleOptions.message = ruleOptions.message || settings.arrayMessage;
 
-    const arrayValidator = (value) => {
-        const validation = value && Array.isArray(value);
+    const arrayValidator = (globalOptions) => {
+        return (value) => {
+            const isValid = ((globalOptions.allowEmptyValue || ruleOptions.allowEmptyValue) && isNull(value))
+                || (value && Array.isArray(value));
 
-        return createValidationResponse(validation, options);
+            return createValidationResponse(isValid, ruleOptions);
+        };
     };
 
     return arrayValidator;
 }
 
-function minlength(size, options = {}) {
-    options = setDefaultSettings(options);
+function minlength(size, ruleOptions = {}) {
+    ruleOptions = setDefaultSettings(ruleOptions);
 
-    if (!options.message) { options.message = settings.minlengthMessage; }
+    ruleOptions.message = ruleOptions.message || settings.minlengthMessage;
 
-    const minlengthValidator = (value) => {
-        const validation = (options.allowEmptyValue && !value)
-            || (typeof (value) === 'string' && value.length >= size);
+    const minlengthValidator = (globalOptions) => {
+        return (value) => {
+            const isValid = ((globalOptions.allowEmptyValue || ruleOptions.allowEmptyValue) && isEmpty(value))
+                || (typeof (value) === 'string' && value.length >= size);
 
-        return createValidationResponse(validation, options);
-    };
+            return createValidationResponse(isValid, ruleOptions);
+        };
+    }
 
     return minlengthValidator;
 }
 
-function maxlength(size, options = {}) {
-    options = setDefaultSettings(options);
+function maxlength(size, ruleOptions = {}) {
+    ruleOptions = setDefaultSettings(ruleOptions);
 
-    if (!options.message) { options.message = settings.maxlengthMessage; }
+    ruleOptions.message = ruleOptions.message || settings.maxlengthMessage;
 
-    const maxlengthValidator = (value) => {
-        const validation = (options.allowEmptyValue && !value)
-            || (typeof (value) === 'string' && value.length <= size);
+    const maxlengthValidator = (globalOptions) => {
+        return (value) => {
+            const isValid = ((globalOptions.allowEmptyValue || ruleOptions.allowEmptyValue) && isEmpty(value))
+                || (typeof (value) === 'string' && value.length <= size);
 
-        return createValidationResponse(validation, options);
+            return createValidationResponse(isValid, ruleOptions);
+        };
     };
 
     return maxlengthValidator;
 }
 
-function range(min, max, options = {}) {
-    options = setDefaultSettings(options);
+function range(min, max, ruleOptions = {}) {
+    options = setDefaultSettings(ruleOptions);
 
-    if (!options.message) { options.message = settings.rangeMessage; }
+    ruleOptions.message = ruleOptions.message || settings.rangeMessage;
 
-    const rangeValidator = (value) => {
-        const validation = (options.allowEmptyValue && !value)
-            || (typeof (value) === 'string' && value.length > min && value.length <= max);
+    const rangeValidator = (globalOptions) => {
+        return (value) => {
+            const isValid = ((globalOptions.allowEmptyValue || ruleOptions.allowEmptyValue) && isEmpty(value))
+                || (typeof (value) === 'string' && value.length > min && value.length <= max);
 
-        return createValidationResponse(validation, options);
+            return createValidationResponse(isValid, ruleOptions);
+        };
     };
 
     return rangeValidator;
 }
 
-function guid(options = {}) {
-    options = setDefaultSettings(options);
+function guid(ruleOptions = {}) {
+    ruleOptions = setDefaultSettings(ruleOptions);
 
-    if (!options.message) { options.message = settings.guidMessage; }
+    ruleOptions.message = ruleOptions.message || settings.guidMessage;
 
-    const guidValidator = (value) => {
-        const validation = (options.allowEmptyValue && !value)
-            || new RegExp(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i).test(value);
+    const guidValidator = (globalOptions) => {
+        return (value) => {
+            const isValid = ((globalOptions.allowEmptyValue || ruleOptions.allowEmptyValue) && isEmpty(value))
+                || new RegExp(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i).test(value);
 
-        return createValidationResponse(validation, options);
+            return createValidationResponse(isValid, ruleOptions);
+        };
     };
 
     return guidValidator;
 }
 
-function cpfFn(options = {}) {
-    options = setDefaultSettings(options);
+function cpfFn(ruleOptions = {}) {
+    ruleOptions = setDefaultSettings(ruleOptions);
 
-    if (!options.message) { options.message = settings.cpfMessage; }
+    ruleOptions.message = ruleOptions.message || settings.cpfMessage;
 
-    const cpfValidator = (value) => {
-        const validation = (options.allowEmptyValue && !value)
-            || cpf.isValid(value);
+    const cpfValidator = (globalOptions) => {
+        return (value) => {
+            const isValid = ((globalOptions.allowEmptyValue || ruleOptions.allowEmptyValue) && isEmpty(value))
+                || cpf.isValid(value);
 
-        return createValidationResponse(validation, options);
+            return createValidationResponse(isValid, ruleOptions);
+        };
     };
 
     return cpfValidator;
 }
 
-function cnpjFn(options = {}) {
-    options = setDefaultSettings(options);
+function cnpjFn(ruleOptions = {}) {
+    ruleOptions = setDefaultSettings(ruleOptions);
 
-    if (!options.message) { options.message = settings.cnpjMessage; }
+    ruleOptions.message = ruleOptions.message || settings.cnpjMessage;
 
-    const cnpjValidator = (value) => {
-        const validation = (options.allowEmptyValue && !value)
-            || cnpj.isValid(value);
+    const cnpjValidator = (globalOptions) => {
+        return (value) => {
+            const isValid = ((globalOptions.allowEmptyValue || ruleOptions.allowEmptyValue) && isEmpty(value))
+                || cnpj.isValid(value);
 
-        return createValidationResponse(validation, options);
+            return createValidationResponse(isValid, ruleOptions);
+        };
     };
 
     return cnpjValidator;
 }
 
-function cpfCnpj(options = {}) {
-    options = setDefaultSettings(options);
+function cpfCnpj(ruleOptions = {}) {
+    ruleOptions = setDefaultSettings(ruleOptions);
 
-    if (!options.message) { options.message = settings.cpfCnpjMessage; }
+    ruleOptions.message = ruleOptions.message || settings.cpfCnpjMessage;
 
-    const cnpjValidator = (value) => {
-        const validation = (options.allowEmptyValue && !value)
-            || cpf.isValid(value) || cnpj.isValid(value);
+    const cpfCnpjValidator = (globalOptions) => {
+        return (value) => {
+            const isValid = ((globalOptions.allowEmptyValue || ruleOptions.allowEmptyValue) && isEmpty(value))
+                || cpf.isValid(value) || cnpj.isValid(value);
 
-        return createValidationResponse(validation, options);
+            return createValidationResponse(isValid, ruleOptions);
+        };
     };
 
-    return cnpjValidator;
+    return cpfCnpjValidator;
 }
 
-function number(options = {}) {
-    options = setDefaultSettings(options);
+function number(ruleOptions = {}) {
+    ruleOptions = setDefaultSettings(ruleOptions);
 
-    if (!options.message) { options.message = settings.numberMessage; }
+    ruleOptions.message = ruleOptions.message || settings.numberMessage;
 
-    const numberValidator = (value) => {
-        const validation = (options.allowEmptyValue && !value)
-            || new RegExp(/^[0-9]*$/).test(value);
+    const numberValidator = (globalOptions) => {
+        return (value) => {
+            const isValid = ((globalOptions.allowEmptyValue || ruleOptions.allowEmptyValue) && isEmpty(value))
+                || new RegExp(/^[0-9]*$/).test(value);
 
-        return createValidationResponse(validation, options);
+            return createValidationResponse(isValid, ruleOptions);
+        };
     };
 
     return numberValidator;
 }
 
-function email(options = {}) {
-    options = setDefaultSettings(options);
+function email(ruleOptions = {}) {
+    ruleOptions = setDefaultSettings(ruleOptions);
 
-    if (!options.message) { options.message = settings.numberMessage; }
+    ruleOptions.message = ruleOptions.message || settings.emailMessage;
 
-    const emailValidator = (value) => {
-        const validation = (options.allowEmptyValue && !value)
-            || new RegExp(/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/).test(String(value).toLowerCase());
+    const emailValidator = (globalOptions) => {
+        return (value) => {
+            const isValid = ((globalOptions.allowEmptyValue || ruleOptions.allowEmptyValue) && isEmpty(value))
+                || new RegExp(/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/).test(String(value).toLowerCase());
 
-        return createValidationResponse(validation, options);
+            return createValidationResponse(isValid, ruleOptions);
+        };
     };
 
     return emailValidator;
@@ -204,7 +233,7 @@ function createValidationResponse(valid, options) {
     options.isValid = valid;
 
     if (valid) { delete options.message; }
-    delete options.allowEmptyValue; 
+    delete options.allowEmptyValue;
 
     return options;
 }
@@ -214,22 +243,34 @@ function check(validations) {
 
     for (const field in validations) {
         let [value, ...rules] = validations[field];
+        let globalOptions = {};
+        let ignoreLastRule = false;
 
         response.validations[field] = {};
 
-        rules.forEach(rule => {
-            if (rule.name.indexOf('Validator') < 0) { rule = rule() };
+        if (typeof rules[rules.length - 1] === 'object') {
+            globalOptions = rules[rules.length - 1];
+            ignoreLastRule = true;
+        }
 
-            let test = rule(value);
-            const ruleName = rule.name.replace('Validator', '');
+        rules.forEach((rule, index) => {
+            let validationWithLocalSettings = rule;
 
-            if (!test.isValid) { response.isValid = false };
+            if (!ignoreLastRule || index !== rules.length - 1) {
+                if (rule.name.indexOf('Validator') < 0) { validationWithLocalSettings = rule() };
 
-            response.validations[field][ruleName] = test;
+                let validationWithGlobalSettings = validationWithLocalSettings(globalOptions);
+
+                let test = validationWithGlobalSettings(value);
+                const ruleName = rule.name.replace('Validator', '');
+
+                if (!test.isValid) { response.isValid = false };
+
+                response.validations[field][ruleName] = test;
+            }
         });
     }
 
-    console.log(JSON.stringify(response));
     return response;
 };
 
