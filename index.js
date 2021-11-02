@@ -45,7 +45,7 @@ function required(options = {}) {
 
         if (Array.isArray(value) && value.length === 0) { validation = false; }
 
-        return createValidationResponse(validation, options.message);
+        return createValidationResponse(validation, options);
     };
 
     return requiredValidator;
@@ -57,7 +57,9 @@ function array(options = {}) {
     if (!options.message) { options.message = settings.arrayMessage; }
 
     const arrayValidator = (value) => {
-        return createValidationResponse(value && Array.isArray(value), options.message);
+        const validation = value && Array.isArray(value);
+
+        return createValidationResponse(validation, options);
     };
 
     return arrayValidator;
@@ -69,10 +71,10 @@ function minlength(size, options = {}) {
     if (!options.message) { options.message = settings.minlengthMessage; }
 
     const minlengthValidator = (value) => {
-        let validation = (options.allowEmptyValue && !value)
+        const validation = (options.allowEmptyValue && !value)
             || (typeof (value) === 'string' && value.length >= size);
 
-        return createValidationResponse(validation, options.message);
+        return createValidationResponse(validation, options);
     };
 
     return minlengthValidator;
@@ -84,10 +86,10 @@ function maxlength(size, options = {}) {
     if (!options.message) { options.message = settings.maxlengthMessage; }
 
     const maxlengthValidator = (value) => {
-        let validation = (options.allowEmptyValue && !value)
+        const validation = (options.allowEmptyValue && !value)
             || (typeof (value) === 'string' && value.length <= size);
 
-        return createValidationResponse(validation, options.message);
+        return createValidationResponse(validation, options);
     };
 
     return maxlengthValidator;
@@ -99,10 +101,10 @@ function range(min, max, options = {}) {
     if (!options.message) { options.message = settings.rangeMessage; }
 
     const rangeValidator = (value) => {
-        let validation = (options.allowEmptyValue && !value)
+        const validation = (options.allowEmptyValue && !value)
             || (typeof (value) === 'string' && value.length > min && value.length <= max);
 
-        return createValidationResponse(validation, options.message);
+        return createValidationResponse(validation, options);
     };
 
     return rangeValidator;
@@ -114,10 +116,10 @@ function guid(options = {}) {
     if (!options.message) { options.message = settings.guidMessage; }
 
     const guidValidator = (value) => {
-        let validation = (options.allowEmptyValue && !value)
+        const validation = (options.allowEmptyValue && !value)
             || new RegExp(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i).test(value);
 
-        return createValidationResponse(validation, options.message);
+        return createValidationResponse(validation, options);
     };
 
     return guidValidator;
@@ -129,10 +131,10 @@ function cpfFn(options = {}) {
     if (!options.message) { options.message = settings.cpfMessage; }
 
     const cpfValidator = (value) => {
-        let validation = (options.allowEmptyValue && !value)
+        const validation = (options.allowEmptyValue && !value)
             || cpf.isValid(value);
 
-        return createValidationResponse(validation, options.message);
+        return createValidationResponse(validation, options);
     };
 
     return cpfValidator;
@@ -144,10 +146,10 @@ function cnpjFn(options = {}) {
     if (!options.message) { options.message = settings.cnpjMessage; }
 
     const cnpjValidator = (value) => {
-        let validation = (options.allowEmptyValue && !value)
+        const validation = (options.allowEmptyValue && !value)
             || cnpj.isValid(value);
 
-        return createValidationResponse(validation, options.message);
+        return createValidationResponse(validation, options);
     };
 
     return cnpjValidator;
@@ -159,10 +161,10 @@ function cpfCnpj(options = {}) {
     if (!options.message) { options.message = settings.cpfCnpjMessage; }
 
     const cnpjValidator = (value) => {
-        let validation = (options.allowEmptyValue && !value)
+        const validation = (options.allowEmptyValue && !value)
             || cpf.isValid(value) || cnpj.isValid(value);
 
-        return createValidationResponse(validation, options.message);
+        return createValidationResponse(validation, options);
     };
 
     return cnpjValidator;
@@ -174,23 +176,37 @@ function number(options = {}) {
     if (!options.message) { options.message = settings.numberMessage; }
 
     const numberValidator = (value) => {
-        let validation = (options.allowEmptyValue && !value)
+        const validation = (options.allowEmptyValue && !value)
             || new RegExp(/^[0-9]*$/).test(value);
 
-        return createValidationResponse(validation, options.message);
+        return createValidationResponse(validation, options);
     };
 
     return numberValidator;
 }
 
-function createValidationResponse(valid, message) {
-    let response = { isValid: valid };
+function email(options = {}) {
+    options = setDefaultSettings(options);
 
-    if (!valid) {
-        response.message = message;
-    }
+    if (!options.message) { options.message = settings.numberMessage; }
 
-    return response;
+    const emailValidator = (value) => {
+        const validation = (options.allowEmptyValue && !value)
+            || new RegExp(/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/).test(String(value).toLowerCase());
+
+        return createValidationResponse(validation, options);
+    };
+
+    return emailValidator;
+}
+
+function createValidationResponse(valid, options) {
+    options.isValid = valid;
+
+    if (valid) { delete options.message; }
+    delete options.allowEmptyValue; 
+
+    return options;
 }
 
 function check(validations) {
@@ -228,5 +244,6 @@ module.exports = {
     cpf: cpfFn,
     cnpj: cnpjFn,
     cpfCnpj,
-    number
+    number,
+    email
 }

@@ -610,6 +610,40 @@ describe('#number', function () {
 
 });
 
+describe('#email', function () {
+
+    describe('#success', function () {
+        it('1) Should validate valid email', function () {
+            const result = validator.check({
+                name: ['fabioseno@gmail.com', validator.email]
+            });
+
+            expect(result.isValid).to.equal(true);
+        });
+
+        it('2) Should validate valid email 2', function () {
+            const result = validator.check({
+                name: ['fabioseno@test.io', validator.email]
+            });
+
+            expect(result.isValid).to.equal(true);
+        });
+
+    });
+
+    describe('#fail', function () {
+        it('1) Should validate invalid email', function () {
+            const result = validator.check({
+                name: ['fabio@test.com2', validator.email]
+            });
+
+            expect(result.isValid).to.equal(false);
+        });
+
+    });
+
+});
+
 describe('#multiple validations', function () {
 
     describe('#success', function () {
